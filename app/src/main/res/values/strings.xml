@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">UnblockMeSolver</string>
+    <string name="guide_button_text">Infer</string>
+    <string name="exit_button_text">Exit</string>
+
+    <string name="channelName">Unblock Me solver Service Channel</string>
+    <string name="channelDescription">Service</string>
+    <string name="notificationTitle"> Unblock Me solver service</string>
+    <string name="notificationText">Guides user to solve an unblock Me puzzle.</string>
+    <string name="system_permission_denied_message">The App can\'t work without the SYSTEM_ALERT permission. SYSTEM_ALERT is needed for creating UI on top  Unblock Me.</string>
+    <string name="system_alert_permission_denied_title">SYSTEM_ALERT Permission denied</string>
+
+    <string name="media_projection_permission_denied_title">Media projection permission needed.</string>
+    <string name="media_projection_permission_denied_message">Media projection is needed for capturing screen while playing Unblock Me.</string>
+    <string name="Unblock_Me_package_name">"com.kiragames.unblockmefree"</string>>
+    <string name="Unblock_Me_package_not_found">"Unblock can't be started automatically."</string>>
+    <string name="install_prompt">Install</string>>
+</resources>
