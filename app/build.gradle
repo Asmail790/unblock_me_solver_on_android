@@ -35,7 +35,6 @@ android {
                 install "networkx"
                 install "attrs"
                 install "termcolor"
-                install "Cython"
             }
         }
     }
