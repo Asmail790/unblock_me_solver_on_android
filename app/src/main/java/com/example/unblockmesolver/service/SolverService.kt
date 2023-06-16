@@ -72,7 +72,7 @@ class SolverService : LifecycleService() {
             val screenshot =  screenshoter.requestScreenshot()
             val results = dector.infer(screenshot)
             val py = Python.getInstance()
-            val  main = py.getModule("main")
+            val  main = py.getModule("android_main")
             val nextStep = main.callAttr("k", results.first.toArray(),results.second).toJava(NextStep::class.java)
             ui.draw(nextStep)
 
