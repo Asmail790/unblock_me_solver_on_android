@@ -48,10 +48,12 @@ class ObjectDector(
     fun infer(screenshot: Bitmap):Pair<ArrayList<Result>, com.example.unblockmesolver.ML.Result> {
         val img = reScaleAndPadImage(screenshot)
         val  inputTensor = TensorImageUtils.bitmapToFloat32Tensor(img, NO_MEAN_RGB,NO_STD_RGB);
-        val outputTuple = dector.forward(IValue.from(inputTensor)).toTuple();
+        val k = IValue.from(inputTensor)
+        val d = dector.forward(k)
+        val outputTuple = d.toTensor();
 
-        val outputTensor = outputTuple[0].toTensor();
-        val outputs = outputTensor.dataAsFloatArray;
+
+        val outputs = outputTuple.dataAsFloatArray;
         val results = outputsToNMSPredictions(outputs, objectScoreThreshold,IouThreshold, limit)
         reScaleBoundingBoxes(arrayListOf(results.second),screenshot)
         reScaleBoundingBoxes(results.first,screenshot)
@@ -84,7 +86,7 @@ class ObjectDector(
         externalFilesDir.absolutePath
         Log.d(TAG, externalFilesDir.absolutePath)
 
-        val f = File(externalFilesDir.absolutePath , "shot.JPG")
+        val f = File(externalFilesDir.absolutePath , "screenshot_with_bounding_boexes.JPG")
         Log.d(TAG, f.exists().toString())
         f.createNewFile()
         val copy = screenshot.copy(screenshot.config,true)
@@ -109,30 +111,59 @@ class ObjectDector(
 
     private fun outputsToNMSPredictions(outputs:FloatArray, objectScoreThreshold:Float,IouThreshold: Float, limit: Int):Pair<ArrayList<Result>,com.example.unblockmesolver.ML.Result> {
         // left, top, right, bottom, objectScore and class probabilities (7 of them)
-        val cellSize = 5 + classes.size
-        val cells = outputs.toList().chunked(cellSize)
-            .map{
-                val boundingBoxCenterX = it[0]
-                val boundingBoxCenterY = it[1]
-                val boundingBoxWidth = it[2]
-                val boundingBoxHeight = it[3]
-                val objectScore = it[4]
-                val classIndex = it.slice(5 until it.size).withIndex().maxBy {x -> x.value }.index
 
-                val left  =  boundingBoxCenterX-boundingBoxWidth/2F
-                val top  = boundingBoxCenterY-boundingBoxHeight/2F
-                val right =   boundingBoxCenterX+boundingBoxWidth/2F
-                val bottom =   boundingBoxCenterY+boundingBoxHeight/2F
-                val  boundingBox =  RectF(left,top,right,bottom)
-                return@map Result(classIndex, objectScore,boundingBox)
-            }
-            .filter {
+
+        val centerxs = outputs.slice(8400*0..8400*1-1)
+        val centerys = outputs.slice(8400*1..8400*2-1)
+        val widths = outputs.slice(8400*2..8400*3-1)
+        val heights =  outputs.slice(8400*3..8400*4-1)
+
+
+        val c1s = outputs.slice(8400*4..8400*5-1)
+        val c2s = outputs.slice(8400*5..8400*6-1)
+        val c3s = outputs.slice(8400*6..8400*7-1)
+        val c4s = outputs.slice(8400*7..8400*8-1)
+        val c5s = outputs.slice(8400*8..8400*9-1)
+        val c6s = outputs.slice(8400*9..8400*10-1)
+        val c7s = outputs.slice(8400*10..8400*11-1)
+        //val cellSize = 4 + classes.size
+
+        /*
+        torch.Size([1, 11, 8400]) == [batch_size,4+number_of_class,grids_cell]
+        A tensor of shape (batch_size, num_classes + 4 + num_masks, num_boxes)
+
+        0 ... 8400-1 center_x # row 0
+        0 ... 8400-1 center_y # row 1
+        0 ... 8400-1 width # row 2
+        0 ... 8400-1 height # row 3
+        ----------- classes # row 4
+        0 ... 8400-1 c1 # row 5
+        0 ... 8400-1 c2 # row 6
+        0 ... 8400-1 c3 # row 7
+        .	.
+        .	.
+        .	.
+        0 ... 8400-1 c7 # row 11
+         */
+        val unfilterCells = mutableListOf<com.example.unblockmesolver.ML.Result>()
+
+        for (i in 0..8400-1) {
+            val classIndex = arrayListOf<Float>(c1s[i],c2s[i],c3s[i],c4s[i],c5s[i],c6s[i],c7s[i]).withIndex().maxBy {x -> x.value }.index
+            val classprob =  arrayListOf<Float>(c1s[i],c2s[i],c3s[i],c4s[i],c5s[i],c6s[i],c7s[i]).withIndex().maxBy {x -> x.value }.value
+            val left  =  centerxs[i]-widths[i]/2F
+            val top  = centerys[i]-heights[i]/2F
+            val right =   centerxs[i]+widths[i]/2F
+            val bottom =   centerys[i]+heights[i]/2F
+            val  boundingBox =  RectF(left,top,right,bottom)
+            val res = Result(classIndex, classprob,boundingBox)
+            unfilterCells.add(res)
+        }
+        val cells = unfilterCells.filter {
                 it.score>=objectScoreThreshold
             }
 
-        val gridClass = classes.indexOf("grid")
+        val gridClass = classes.indexOf("Grid")
         val gridsPrediction = cells.groupBy { x -> x.classIndex == gridClass  }
-
 
 
 
@@ -260,13 +291,14 @@ class ObjectDector(
 
        externalFilesDir.absolutePath
        Log.d(TAG, externalFilesDir.absolutePath)
+       val f1 = File(externalFilesDir.absolutePath , "screenshot.JPG")
+       val f2 = File(externalFilesDir.absolutePath , "resized_screenshot.JPG")
+      Log.d(TAG, f2.exists().toString() + " " + f2.exists().toString())
+       f1.createNewFile()
+       f2.createNewFile()
 
-      val f = File(externalFilesDir.absolutePath , "shot.JPG")
-      Log.d(TAG, f.exists().toString())
-      f.createNewFile()
-
-      resizedAndPaddedImage.compress(Bitmap.CompressFormat.JPEG,100,f.outputStream())
-      Log.d(TAG, f.exists().toString())
+       screenshot.compress(Bitmap.CompressFormat.JPEG,100,f1.outputStream())
+       resizedAndPaddedImage.compress(Bitmap.CompressFormat.JPEG,100,f2.outputStream())
        return resizedAndPaddedImage
    }
 
