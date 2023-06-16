@@ -1,7 +1,7 @@
-H2x
-H3x
-V2x
-V3x
-silver
-red
-grid
+H2X
+H3X
+V2X
+V3X
+MainBlock
+FixedBlock
+Grid
