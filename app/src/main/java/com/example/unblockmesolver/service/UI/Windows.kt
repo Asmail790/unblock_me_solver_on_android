@@ -2,11 +2,14 @@ package com.example.unblockmesolver.service.UI
 
 import android.content.Context
 import android.graphics.*
+import android.hardware.display.DisplayManager
 import android.os.Build
+import android.util.Log
 import android.view.*
 import android.widget.Button
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.drawToBitmap
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.unblockmesolver.R
@@ -34,7 +37,7 @@ class UI(
     }
 
     private val controlPanel: View
-    private val overlayView:OverlayView
+         val overlayView:OverlayView
     private val controlPanelParams: WindowManager.LayoutParams
     private val ovelayViewParms:WindowManager.LayoutParams
     private val windowManager:WindowManager
@@ -131,12 +134,12 @@ class UI(
 
     fun hide() {
         overlayView.visibility = View.GONE
-        controlPanel.visibility = View.GONE
+        //controlPanel.visibility = View.GONE
     }
 
     fun show() {
         overlayView.visibility = View.VISIBLE
-        controlPanel.visibility = View.VISIBLE
+        //controlPanel.visibility = View.VISIBLE
     }
 
     fun dropOverlays(){

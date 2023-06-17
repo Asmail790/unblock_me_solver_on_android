@@ -7,8 +7,12 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
+import android.view.Choreographer
+import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
@@ -19,6 +23,7 @@ import com.chaquo.python.Python
 import com.example.unblockmesolver.ML.ObjectDector
 import com.example.unblockmesolver.service.UI.NextStep
 import com.example.unblockmesolver.service.UI.UI
+import java.io.File
 
 
 class SolverService : LifecycleService() {
@@ -28,6 +33,7 @@ class SolverService : LifecycleService() {
         const val DATA = "DATA"
         const val CHANNEL_ID = "UnBlockMe Solver Service"
         const val notificationId = 1
+        const val  TAG = "SERVICE"
         fun startServiceIntent(context: Context,data:Intent, resultCode:Int):Intent  = Intent(context,SolverService::class.java).apply {
                 putExtra(RESULT_CODE, resultCode);
                 putExtra(DATA, data);
@@ -46,6 +52,7 @@ class SolverService : LifecycleService() {
     private val dector:ObjectDector
         get() = this._dector
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate() {
         super.onCreate()
         if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -66,15 +73,27 @@ class SolverService : LifecycleService() {
 
         _dector = ObjectDector(this)
         _ui = UI(this, onGuide =  {
-            //ui.hide()
+
+
+                ui.hide()
+                ui.overlayView.postDelayed( {
+                    val screenshot =  screenshoter.requestScreenshot()
+                    val results = dector.infer(screenshot)
+                    val py = Python.getInstance()
+                    val  main = py.getModule("android_main")
+                    val nextStep = main.callAttr("infer", results.first.toArray(),results.second).toJava(NextStep::class.java)
+                    Log.d(TAG,nextStep.component3())
+                    ui.show()
+                    ui.draw(nextStep)
+                },100)
+
             //ui.makeDark()
-            ui.dropOverlays()
-            val screenshot =  screenshoter.requestScreenshot()
-            val results = dector.infer(screenshot)
-            val py = Python.getInstance()
-            val  main = py.getModule("android_main")
-            val nextStep = main.callAttr("k", results.first.toArray(),results.second).toJava(NextStep::class.java)
-            ui.draw(nextStep)
+
+
+            //ui.dropOverlays()
+
+
+
 
 
 

@@ -12,6 +12,9 @@ import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Message
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -28,7 +31,6 @@ class Screenshoter(
     private val mVirtualDisplay: VirtualDisplay
     private val screenSize:Pair<Int,Int>
     private val DPI:Int
-
 
     @SuppressLint("WrongConstant")
     private fun createImageReader() = ImageReader.newInstance(
@@ -61,7 +63,6 @@ class Screenshoter(
         val resultData = data.first
         mMediaProjection  = mMediaProjectionManager.getMediaProjection(resultCode, resultData);
         mImageReader = createImageReader()
-
         mVirtualDisplay = mMediaProjection.createVirtualDisplay("fakeit",
             mImageReader.width,
             mImageReader.height,
@@ -69,12 +70,11 @@ class Screenshoter(
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             mImageReader.surface,
             null,
-            null
+          null
         )
     }
-
-
     fun requestScreenshot(): Bitmap {
+
         return mImageReader.acquireLatestImage().let {
             val width = it.width
             val height = it.height
