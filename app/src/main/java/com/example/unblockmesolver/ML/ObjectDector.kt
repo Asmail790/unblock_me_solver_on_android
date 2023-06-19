@@ -103,8 +103,6 @@ class ObjectDector(
 
         copy.compress(Bitmap.CompressFormat.JPEG,100,f.outputStream())
         Log.d(TAG, f.exists().toString())
-
-
     }
 
 

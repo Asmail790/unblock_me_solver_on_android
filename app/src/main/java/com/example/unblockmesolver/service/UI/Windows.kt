@@ -2,14 +2,10 @@ package com.example.unblockmesolver.service.UI
 
 import android.content.Context
 import android.graphics.*
-import android.hardware.display.DisplayManager
 import android.os.Build
-import android.util.Log
 import android.view.*
 import android.widget.Button
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.drawToBitmap
+import androidx.appcompat.widget.SwitchCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.unblockmesolver.R
@@ -18,7 +14,7 @@ import com.example.unblockmesolver.R
 
 
 sealed  class NextStepInformation()
-data class NextStep( @JvmField val currentBlockPosition:RectF, @JvmField val toCurrentBlockPosition:RectF, @JvmField val explation:String): NextStepInformation()
+data class NextStep(@JvmField val currentBlockPosition:RectF, @JvmField val newBlockPosition:RectF, @JvmField val explation:String): NextStepInformation()
 data class DetectionFailure(@JvmField val cause:String): NextStepInformation()
 data class SolverFailure( @JvmField val cause:String): NextStepInformation()
 
@@ -95,6 +91,7 @@ class UI(
         overlayView.drawCanvas { it.drawColor(Color.BLACK) }
     }
 
+    fun isRooted()  = controlPanel.findViewById<SwitchCompat>(R.id.all_steps).isChecked
 
      fun draw(guide: NextStepInformation){
         overlayView.drawCanvas {
@@ -125,7 +122,7 @@ class UI(
 
                 is NextStep -> {
                     it.drawRect(guide.currentBlockPosition,rectPainterFrom)
-                    it.drawRect(guide.toCurrentBlockPosition,rectPainterTo)
+                    it.drawRect(guide.newBlockPosition,rectPainterTo)
                 }
             }
 

@@ -74,7 +74,6 @@ class Screenshoter(
         )
     }
     fun requestScreenshot(): Bitmap {
-
         return mImageReader.acquireLatestImage().let {
             val width = it.width
             val height = it.height
