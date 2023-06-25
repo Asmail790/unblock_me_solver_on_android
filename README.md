@@ -1,5 +1,5 @@
 # unblock_me_solver_on_android
-A foreground service that will help the user to solve puzzles for the popular game called “Unblock Me”. 
+A foreground service that will help the user to solve puzzles for the popular game ["Unblock Me”](https://play.google.com/store/apps/details?id=com.kiragames.unblockmefree&hl=en). 
 The app will guide the user step by step to the fastest solution.
 If the phone is rooted the user can let the program automatically move the blocks.
 The app is written in Kotlin and partially in Python. 
