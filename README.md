@@ -6,4 +6,4 @@ The app is written in Kotlin and partially in Python.
 A Yolov8s object detector model from Ultalytics is used for detecting blocks. 
 Currently only works with the default theme.
 
-[Demo video] (https://drive.google.com/file/d/1sJswbeBapq-kefH3gZifg3wDtTrtcI5R/view?usp=sharing).
+Check the [link](https://drive.google.com/file/d/1sJswbeBapq-kefH3gZifg3wDtTrtcI5R/view?usp=sharing) for a short demo video.
