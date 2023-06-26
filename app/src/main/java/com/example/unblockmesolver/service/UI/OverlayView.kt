@@ -6,7 +6,7 @@ import android.view.PixelCopy
 import android.view.View
 import java.util.concurrent.locks.ReentrantLock
 
-class OverlayView(context: Context, private val matrix:Matrix): View(context) {
+class OverlayView(context: Context): View(context) {
     private var func: ((Canvas) -> Unit)? = null
 
 

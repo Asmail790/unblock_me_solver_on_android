@@ -8,7 +8,11 @@ import android.graphics.Bitmap
 import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
+import android.media.AudioRecord
+import android.media.CamcorderProfile
+import android.media.EncoderProfiles
 import android.media.ImageReader
+import android.media.MediaRecorder
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
@@ -19,7 +23,9 @@ import android.util.DisplayMetrics
 import android.view.WindowManager
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import java.io.File
 
+@SuppressLint("MissingPermission")
 class Screenshoter(
     val context: Context,
     val data:Pair<Intent,Int>,
@@ -31,6 +37,9 @@ class Screenshoter(
     private val mVirtualDisplay: VirtualDisplay
     private val screenSize:Pair<Int,Int>
     private val DPI:Int
+    private val  mVirtualDisplay2:VirtualDisplay
+
+    private  val mMediaRecorder:MediaRecorder
 
     @SuppressLint("WrongConstant")
     private fun createImageReader() = ImageReader.newInstance(
@@ -56,7 +65,31 @@ class Screenshoter(
                    Pair(it.widthPixels,it.heightPixels)
                 }
             }
+
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+
+            mMediaRecorder = MediaRecorder(context)
+        } else {
+            mMediaRecorder = MediaRecorder()
+        }
+
+        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT)
+        mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE)
+
+
+        val profile: CamcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH)
+        profile.videoFrameWidth = screenSize.first
+        profile.videoFrameHeight = screenSize.second
+
+        mMediaRecorder.setProfile(profile)
+        val f = File(context.getExternalFilesDir(null), "video.mp4")
+        f.createNewFile()
+        mMediaRecorder.setOutputFile(f.absolutePath)
+        mMediaRecorder.prepare()
+        mMediaRecorder.start()
+
 
         val mMediaProjectionManager = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         val resultCode = data.second
@@ -70,11 +103,20 @@ class Screenshoter(
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             mImageReader.surface,
             null,
-          null
+            null
+        )
+
+        mVirtualDisplay2 = mMediaProjection!!.createVirtualDisplay("fakeit2",
+            screenSize.first,
+            screenSize.second,
+            DPI,
+            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+            mMediaRecorder.surface,
+            null,
+            null
         )
     }
     fun requestScreenshot(): Bitmap {
-
         return mImageReader.acquireLatestImage().let {
             val width = it.width
             val height = it.height
@@ -97,9 +139,17 @@ class Screenshoter(
     }
 
     override fun onDestroy(owner: LifecycleOwner) {
+        mMediaRecorder.stop()
+        mVirtualDisplay2.release()
+
+
+
         mImageReader.close()
         mVirtualDisplay.release()
+
        mMediaProjection.stop()
+
+
     }
 
 }

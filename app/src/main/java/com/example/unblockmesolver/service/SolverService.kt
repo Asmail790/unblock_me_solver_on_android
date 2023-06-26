@@ -7,23 +7,20 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
+import android.graphics.Point
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import android.view.Choreographer
-import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
-import com.chaquo.python.PyObject
 import com.chaquo.python.Python
 import com.example.unblockmesolver.ML.ObjectDector
 import com.example.unblockmesolver.service.UI.NextStep
 import com.example.unblockmesolver.service.UI.UI
-import java.io.File
+import kotlin.math.roundToInt
 
 
 class SolverService : LifecycleService() {
@@ -73,43 +70,49 @@ class SolverService : LifecycleService() {
 
         _dector = ObjectDector(this)
         _ui = UI(this, onGuide =  {
+            ui.hide()
+            ui.overlayView.postDelayed( {
+                val screenshot =  screenshoter.requestScreenshot()
+                val results = dector.infer(screenshot)
+                val py = Python.getInstance()
+                val  main = py.getModule("android_main")
+                if (ui.isRooted()) {
 
-
-                ui.hide()
-                ui.overlayView.postDelayed( {
-                    val screenshot =  screenshoter.requestScreenshot()
-                    val results = dector.infer(screenshot)
-                    val py = Python.getInstance()
-                    val  main = py.getModule("android_main")
+                    val allSteps = main.callAttr("infer_all_steps", results.first.toArray(),results.second).toJava(Array<NextStep>::class.java)
+                    val builder = StringBuilder()
+                    builder.append("su root -c ")
+                    allSteps.map { x -> getCenters(x)}.forEach {p->
+                        val command = """ input touchscreen swipe ${p.first.x} ${p.first.y} ${p.second.x} ${p.second.y} 100;"""
+                        builder.append(command)
+                    }
+                    val p = Runtime.getRuntime().exec(builder.toString())
+                    p.waitFor()
+                } else {
                     val nextStep = main.callAttr("infer", results.first.toArray(),results.second).toJava(NextStep::class.java)
                     Log.d(TAG,nextStep.component3())
                     ui.show()
                     ui.draw(nextStep)
-                },100)
+                }
+            },100)
 
             //ui.makeDark()
-
-
             //ui.dropOverlays()
-
-
-
-
-
-
-
 
         }, onExit = {
             stopSelf()
         })
         lifecycle.addObserver(ui)
     }
-
     override fun onBind(intent: Intent): IBinder? {
         super.onBind(intent)
       return null;
     }
 
+    fun getCenters(nextStep: NextStep):Pair<Point,Point> {
+        val oldCenter = Point(nextStep.currentBlockPosition.centerX().roundToInt(),nextStep.currentBlockPosition.centerY().roundToInt())
+        val newCenter =  Point(nextStep.newBlockPosition.centerX().roundToInt(),nextStep.newBlockPosition.centerY().roundToInt())
+        return Pair(oldCenter,newCenter)
+    }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         if (_screenshoter != null) {

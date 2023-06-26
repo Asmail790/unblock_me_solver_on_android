@@ -86,7 +86,7 @@ class ObjectDector(
         externalFilesDir.absolutePath
         Log.d(TAG, externalFilesDir.absolutePath)
 
-        val f = File(externalFilesDir.absolutePath , "screenshot_with_bounding_boexes.JPG")
+        val f = File(externalFilesDir.absolutePath , "screenshot_with_bounding_boexes.jpg")
         Log.d(TAG, f.exists().toString())
         f.createNewFile()
         val copy = screenshot.copy(screenshot.config,true)
@@ -103,8 +103,6 @@ class ObjectDector(
 
         copy.compress(Bitmap.CompressFormat.JPEG,100,f.outputStream())
         Log.d(TAG, f.exists().toString())
-
-
     }
 
 
@@ -291,8 +289,8 @@ class ObjectDector(
 
        externalFilesDir.absolutePath
        Log.d(TAG, externalFilesDir.absolutePath)
-       val f1 = File(externalFilesDir.absolutePath , "screenshot.JPG")
-       val f2 = File(externalFilesDir.absolutePath , "resized_screenshot.JPG")
+       val f1 = File(externalFilesDir.absolutePath , "screenshot.jpg")
+       val f2 = File(externalFilesDir.absolutePath , "resized_screenshot.jpg")
       Log.d(TAG, f2.exists().toString() + " " + f2.exists().toString())
        f1.createNewFile()
        f2.createNewFile()
