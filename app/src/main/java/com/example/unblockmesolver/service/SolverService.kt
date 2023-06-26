@@ -87,6 +87,7 @@ class SolverService : LifecycleService() {
                     }
                     val p = Runtime.getRuntime().exec(builder.toString())
                     p.waitFor()
+
                 } else {
                     val nextStep = main.callAttr("infer", results.first.toArray(),results.second).toJava(NextStep::class.java)
                     Log.d(TAG,nextStep.component3())
