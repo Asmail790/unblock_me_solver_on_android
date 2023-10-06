@@ -1,4 +1,4 @@
-package com.example.unblockmesolver.ML
+package com.example.unblockmesolver.ml
 
 import android.content.Context
 import android.graphics.*
@@ -39,13 +39,13 @@ class ObjectDector(
    private val dector = LiteModuleLoader.loadModuleFromAsset(context.assets, detectorFile)
    private val classes = context.assets.open(classesFile).let {
       val f =  BufferedReader(InputStreamReader(it))
-      val resf = f.lines().toList().map{ x -> x.strip() }
+      val resf = f.lines().toList().map{ x -> x.trim() }
          f.close()
          resf
    }
 
 
-    fun infer(screenshot: Bitmap):Pair<ArrayList<Result>, com.example.unblockmesolver.ML.Result> {
+    fun infer(screenshot: Bitmap):Pair<ArrayList<Result>, com.example.unblockmesolver.ml.Result> {
         val img = reScaleAndPadImage(screenshot)
         val  inputTensor = TensorImageUtils.bitmapToFloat32Tensor(img, NO_MEAN_RGB,NO_STD_RGB);
         val k = IValue.from(inputTensor)
@@ -107,7 +107,7 @@ class ObjectDector(
 
 
 
-    private fun outputsToNMSPredictions(outputs:FloatArray, objectScoreThreshold:Float,IouThreshold: Float, limit: Int):Pair<ArrayList<Result>,com.example.unblockmesolver.ML.Result> {
+    private fun outputsToNMSPredictions(outputs:FloatArray, objectScoreThreshold:Float,IouThreshold: Float, limit: Int):Pair<ArrayList<Result>,com.example.unblockmesolver.ml.Result> {
         // left, top, right, bottom, objectScore and class probabilities (7 of them)
 
 
@@ -143,7 +143,7 @@ class ObjectDector(
         .	.
         0 ... 8400-1 c7 # row 11
          */
-        val unfilterCells = mutableListOf<com.example.unblockmesolver.ML.Result>()
+        val unfilterCells = mutableListOf<com.example.unblockmesolver.ml.Result>()
 
         for (i in 0..8400-1) {
             val classIndex = arrayListOf<Float>(c1s[i],c2s[i],c3s[i],c4s[i],c5s[i],c6s[i],c7s[i]).withIndex().maxBy {x -> x.value }.index

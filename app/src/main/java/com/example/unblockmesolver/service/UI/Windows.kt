@@ -9,16 +9,10 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.unblockmesolver.R
-
-
-
-
-sealed  class NextStepInformation()
-data class NextStep(@JvmField val currentBlockPosition:RectF, @JvmField val newBlockPosition:RectF, @JvmField val explation:String): NextStepInformation()
-data class DetectionFailure(@JvmField val cause:String): NextStepInformation()
-data class SolverFailure( @JvmField val cause:String): NextStepInformation()
-
-
+import com.example.unblockmesolver.service.nextstepInformation.DetectionFailure
+import com.example.unblockmesolver.service.nextstepInformation.NextStep
+import com.example.unblockmesolver.service.nextstepInformation.NextStepInformation
+import com.example.unblockmesolver.service.nextstepInformation.SolverFailure
 
 
 // action that return triangles,
@@ -104,7 +98,7 @@ class UI(
                 strokeWidth = 3F
             }
             when(guide) {
-                is  SolverFailure ->{
+                is SolverFailure ->{
                     it.drawText( guide.cause,0F,0F,textPainter)
                 }
                 is DetectionFailure -> {

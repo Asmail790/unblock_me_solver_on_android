@@ -1,0 +1,6 @@
+<resources>
+
+    <string name="py_solver">PythonSolver</string>
+    <string name="cpp_solver">CppSolver</string>
+    <string name="chosen">@string/cpp_solver</string>
+</resources>

@@ -10,17 +10,19 @@ import android.content.Intent
 import android.graphics.Point
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
-import com.chaquo.python.Python
-import com.example.unblockmesolver.ML.ObjectDector
-import com.example.unblockmesolver.service.UI.NextStep
+import com.example.unblockmesolver.ml.ObjectDector
+import com.example.unblockmesolver.service.Solvers.CPPSolver
+import com.example.unblockmesolver.service.Solvers.PythonSolver
+import com.example.unblockmesolver.service.Solvers.Solver
+import com.example.unblockmesolver.service.nextstepInformation.NextStep
 import com.example.unblockmesolver.service.UI.UI
 import kotlin.math.roundToInt
+import kotlin.streams.toList
 
 
 class SolverService : LifecycleService() {
@@ -40,6 +42,7 @@ class SolverService : LifecycleService() {
     private  var   _screenshoter: Screenshoter? = null
     private lateinit var _ui: UI
     private lateinit var _dector:ObjectDector
+
     private val screenshoter:Screenshoter
         get() = this._screenshoter!!
 
@@ -66,7 +69,13 @@ class SolverService : LifecycleService() {
         )
 
         startForeground(notificationId,notification)
+        val classIds = assets.open("classes.txt")
+           .bufferedReader(Charsets.UTF_8).lines()
+          .toList()
 
+
+        PythonSolver.setClassIdMapping(classIds)
+        CPPSolver.setClassIdMapping(classIds)
 
         _dector = ObjectDector(this)
         _ui = UI(this, onGuide =  {
@@ -74,30 +83,23 @@ class SolverService : LifecycleService() {
             ui.overlayView.postDelayed( {
                 val screenshot =  screenshoter.requestScreenshot()
                 val results = dector.infer(screenshot)
-                val py = Python.getInstance()
-                val  main = py.getModule("android_main")
+                val solver:Solver = when(resources.getString(R.string.chosen)) {
+                    resources.getString(R.string.py_solver) -> PythonSolver
+                    resources.getString(R.string.cpp_solver) -> CPPSolver
+                    else -> throw  Exception("solver not found")
+                }
+
                 if (ui.isRooted()) {
-
-                    val allSteps = main.callAttr("infer_all_steps", results.first.toArray(),results.second).toJava(Array<NextStep>::class.java)
-                    val builder = StringBuilder()
-                    builder.append("su root -c ")
-                    allSteps.map { x -> getCenters(x)}.forEach {p->
-                        val command = """ input touchscreen swipe ${p.first.x} ${p.first.y} ${p.second.x} ${p.second.y} 100;"""
-                        builder.append(command)
-                    }
-                    val p = Runtime.getRuntime().exec(builder.toString())
+                    val command = solver.solve(results);
+                    val p = Runtime.getRuntime().exec(command)
                     p.waitFor()
-
                 } else {
-                    val nextStep = main.callAttr("infer", results.first.toArray(),results.second).toJava(NextStep::class.java)
-                    Log.d(TAG,nextStep.component3())
+                    val nextStep = solver.guide(results);
                     ui.show()
                     ui.draw(nextStep)
                 }
-            },100)
-
-            //ui.makeDark()
-            //ui.dropOverlays()
+            },100
+            )
 
         }, onExit = {
             stopSelf()
@@ -125,8 +127,6 @@ class SolverService : LifecycleService() {
 
         return START_NOT_STICKY;
     }
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel(
         channelId:String = CHANNEL_ID,
@@ -199,12 +199,7 @@ class SolverService : LifecycleService() {
             else -> readIntentAPI32OrLower(intent)
         }
     }
-
-
-
     override fun onDestroy() {
         super.onDestroy()
-
-
     }
 }

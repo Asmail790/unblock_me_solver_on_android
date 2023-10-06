@@ -1,5 +1,5 @@
-package com.example.unblockmesolver.ML;
-import  com.example.unblockmesolver.ML.Result;
+package com.example.unblockmesolver.ml;
+
 public class Test {
 
     public void f(Result v){
